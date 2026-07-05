@@ -1,4 +1,79 @@
-### 10. **Secrets Management for Production**
+ifysora-app/
+├── server/
+│   ├── src/
+│   │   ├── index.ts                 # Main server entry
+│   │   ├── config/
+│   │   │   ├── database.ts          # Database connection
+│   │   │   ├── env.ts              # Environment variables
+│   │   │   └── gemini.ts           # Gemini AI configuration
+│   │   ├── models/
+│   │   │   ├── User.ts             # User model
+│   │   │   ├── Measurement.ts      # Measurement model
+│   │   │   ├── Organization.ts     # Organization model
+│   │   │   └── AuditLog.ts         # Audit log model
+│   │   ├── controllers/
+│   │   │   ├── authController.ts   # Authentication
+│   │   │   ├── measurementController.ts
+│   │   │   ├── organizationController.ts
+│   │   │   └── syncController.ts   # Ecosystem sync
+│   │   ├── services/
+│   │   │   ├── geminiService.ts    # Gemini AI integration
+│   │   │   ├── measurementService.ts
+│   │   │   ├── syncService.ts      # FYSORA FASHN sync
+│   │   │   └── auditService.ts
+│   │   ├── middleware/
+│   │   │   ├── auth.ts             # JWT authentication
+│   │   │   ├── rateLimiter.ts
+│   │   │   └── validation.ts
+│   │   ├── routes/
+│   │   │   ├── authRoutes.ts
+│   │   │   ├── measurementRoutes.ts
+│   │   │   └── syncRoutes.ts
+│   │   ├── utils/
+│   │   │   ├── logger.ts
+│   │   │   └── validators.ts
+│   │   └── types/
+│   │       └── index.ts
+│   ├── package.json
+│   └── tsconfig.json
+├── client/
+│   ├── src/
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   ├── components/
+│   │   │   ├── Auth/
+│   │   │   │   ├── Login.tsx
+│   │   │   │   ├── Register.tsx
+│   │   │   │   └── SSOLogin.tsx
+│   │   │   ├── Measurements/
+│   │   │   │   ├── CaptureWizard.tsx
+│   │   │   │   ├── ResultsDisplay.tsx
+│   │   │   │   └── HistoryList.tsx
+│   │   │   ├── Organizations/
+│   │   │   │   ├── OrgDashboard.tsx
+│   │   │   │   └── MemberManagement.tsx
+│   │   │   └── Shared/
+│   │   │       ├── Layout.tsx
+│   │   │       ├── LoadingSpinner.tsx
+│   │   │       └── EcosystemNotice.tsx
+│   │   ├── hooks/
+│   │   │   ├── useAuth.ts
+│   │   │   └── useMeasurements.ts
+│   │   ├── services/
+│   │   │   ├── api.ts
+│   │   │   └── auth.ts
+│   │   ├── context/
+│   │   │   └── AuthContext.tsx
+│   │   ├── styles/
+│   │   │   └── index.css
+│   │   └── types/
+│   │       └── index.ts
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tsconfig.json
+├── .env.example
+├── .gitignore
+└── README.md### 10. **Secrets Management for Production**
 
 Create a script for encrypting sensitive data:
 
