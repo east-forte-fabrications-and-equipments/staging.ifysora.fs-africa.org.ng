@@ -1,0 +1,57 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+    
+    - name: Install dependencies
+      run: |
+        cd server && npm ci
+        cd ../client && npm ci
+    
+    - name: Run tests
+      run: |
+        cd server && npm test
+        cd ../client && npm test
+    
+    - name: Build application
+      run: |
+        cd client && npm run build
+        cd ../server && npm run build
+    
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+          cd /var/www/ifysora
+          git pull origin main
+          docker-compose down
+          docker-compose build --no-cache
+          docker-compose up -d
+          docker system prune -f
+    
+    - name: Run database migrations
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+          docker exec ifysora_app_1 npx prisma db push
+          docker exec ifysora_app_1 npx prisma generate
