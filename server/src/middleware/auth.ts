@@ -15,16 +15,22 @@ export interface AuthRequest extends Request {
 
 export async function authenticate(req: Request, res: Response, next: NextFunction) {
   try {
-    const authHeader = req.headers.authorization;
+    // Get token from cookie or Authorization header
+    let token = req.cookies?.accessToken;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
+    
+    if (!token) {
       return res.status(401).json({
         error: 'Authentication required',
         message: 'Please provide a valid JWT token',
       });
     }
-
-    const token = authHeader.substring(7);
     
     // Verify token
     const decoded = jwt.verify(token, env.JWT_SECRET) as {
@@ -86,73 +92,4 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
   }
 }
 
-export function requireRole(roles: string[]) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as AuthRequest).user;
-    
-    if (!user) {
-      return res.status(401).json({
-        error: 'Authentication required',
-      });
-    }
-
-    if (!roles.includes(user.role)) {
-      return res.status(403).json({
-        error: 'Access denied',
-        message: 'You do not have permission to access this resource',
-      });
-    }
-
-    next();
-  };
-}
-
-export function requireVerification(level: number) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as AuthRequest).user;
-    
-    if (!user) {
-      return res.status(401).json({
-        error: 'Authentication required',
-      });
-    }
-
-    if (user.verificationLevel < level) {
-      return res.status(403).json({
-        error: 'Verification required',
-        message: `Please complete verification level ${level} to access this resource`,
-        requiredLevel: level,
-        currentLevel: user.verificationLevel,
-      });
-    }
-
-    next();
-  };
-}
-
-export function requireActiveSubscription() {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as AuthRequest).user;
-    
-    if (!user) {
-      return res.status(401).json({
-        error: 'Authentication required',
-      });
-    }
-
-    const userRecord = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { subscriptionStatus: true },
-    });
-
-    if (userRecord?.subscriptionStatus !== 'ACTIVE') {
-      return res.status(403).json({
-        error: 'Subscription required',
-        message: 'An active subscription is required to access this feature',
-        status: userRecord?.subscriptionStatus || 'EXPIRED',
-      });
-    }
-
-    next();
-  };
-  }
+ 
