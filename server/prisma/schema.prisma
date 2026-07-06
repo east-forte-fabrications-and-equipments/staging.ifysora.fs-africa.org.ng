@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String            @id @default(cuid())
+  email             String            @unique
+  phone             String?           @unique
+  passwordHash      String?
+  displayName       String
+  profilePicture    String?
+  
+  // Ecosystem fields
+  fysoraUserId      String?           @unique
+  ecosystemUserId   String?           @unique
+  role              UserRole          @default(CUSTOMER)
+  
+  // Subscription & plan
+  subscriptionId    String?
+  planId            String?
+  subscriptionStatus SubscriptionStatus @default(EXPIRED)
+  
+  // Verification levels
+  verificationLevel Int               @default(0)
+  isVerified        Boolean           @default(false)
+  verificationData  Json?
+  
+  // Permissions
+  permissions       Json?
+  cloudProviders    Json?
+  backupSettings    Json?
+  
+  // Metadata
+  lastLoginAt       DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  deletedAt         DateTime?
+  
+  // Relationships
+  measurements      Measurement[]
+  organizations     OrganizationMember[]
+  auditLogs         AuditLog[]
+  sessions          Session[]
+  
+  // Indexes
+  @@index([email])
+  @@index([ecosystemUserId])
+  @@index([fysoraUserId])
+  @@index([role])
+  @@index([subscriptionStatus])
+}
+
+model Measurement {
+  id                String            @id @default(cuid())
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Measurement data
+  data              Json
+  sessionId         String            @unique
+  timestamp         DateTime          @default(now())
+  userHeightCm      Float
+  bodyShape         String?
+  confidenceScores  Json?
+  calibrationData   Json?
+  poseFeedback      Json?
+  clothingFeedback  Json?
+  
+  // AI metadata
+  aiModelUsed       String?
+  aiConfidence      Float?
+  
+  // Sharing permissions
+  sharedWithTailors Boolean           @default(false)
+  sharedWithDesigners Boolean         @default(false)
+  sharedWithOrganizations Boolean     @default(false)
+  sharedWithMarketplace Boolean       @default(false)
+  
+  // Synchronization
+  syncedToFysora    Boolean           @default(false)
+  fysoraMeasurementId String?
+  syncedAt          DateTime?
+  
+  // Metadata
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  // Audit
+  auditLogs         AuditLog[]
+  
+  // Indexes - CRITICAL for performance
+  @@index([userId])
+  @@index([timestamp])
+  @@index([userId, timestamp])
+  @@index([sessionId])
+  @@index([syncedToFysora])
+  @@index([bodyShape])
+}
+
+model Organization {
+  id                String            @id @default(cuid())
+  name              String
+  description       String?
+  type              OrganizationType   @default(TAILOR)
+  registrationNumber String?
+  verificationLevel Int               @default(0)
+  isVerified        Boolean           @default(false)
+  
+  // Ecosystem
+  fysoraOrgId       String?           @unique
+  
+  // Metadata
+  logo              String?
+  address           Json?
+  contactEmail      String?
+  contactPhone      String?
+  
+  // Settings
+  settings          Json?
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  // Relationships
+  members           OrganizationMember[]
+  auditLogs         AuditLog[]
+  
+  // Indexes
+  @@index([name])
+  @@index([type])
+  @@index([fysoraOrgId])
+}
+
+model OrganizationMember {
+  id                String            @id @default(cuid())
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId    String
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role              OrgMemberRole     @default(MEMBER)
+  permissions       Json?
+  joinedAt          DateTime          @default(now())
+  
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+  @@index([role])
+}
+
+model Session {
+  id                String            @id @default(cuid())
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshToken      String            @unique
+  expiresAt         DateTime
+  userAgent         String?
+  ipAddress         String?
+  deviceInfo        Json?
+  createdAt         DateTime          @default(now())
+  revokedAt         DateTime?
+  
+  @@index([userId])
+  @@index([refreshToken])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id                String            @id @default(cuid())
+  userId            String?
+  user              User?             @relation(fields: [userId], references: [id])
+  organizationId    String?
+  organization      Organization?     @relation(fields: [organizationId], references: [id])
+  measurementId     String?
+  measurement       Measurement?      @relation(fields: [measurementId], references: [id])
+  
+  action            String
+  resource          String
+  resourceId        String?
+  oldValues         Json?
+  newValues         Json?
+  metadata          Json?
+  
+  source            String
+  ipAddress         String?
+  userAgent         String?
+  
+  timestamp         DateTime          @default(now())
+  
+  // Indexes - CRITICAL for audit queries
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([timestamp])
+  @@index([userId, action, timestamp])
+}
+
+enum UserRole {
+  CUSTOMER
+  TAILOR
+  DESIGNER
+  ORGANIZATION
+  SUPER_ADMIN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING
+  TRIAL
+}
+
+enum OrganizationType {
+  TAILOR
+  DESIGNER
+  BOUTIQUE
+  BRAND
+  OTHER
+}
+
+enum OrgMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
