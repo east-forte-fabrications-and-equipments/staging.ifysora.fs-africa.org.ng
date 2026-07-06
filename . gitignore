@@ -1,0 +1,122 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Database
+data/*.sqlite
+data/*.db
+data/*.json
+!data/.gitkeep
+*.sqlite
+*.db
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build output
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Secrets
+secrets.encrypted.json
+*.pem
+*.key
+*.crt
+*.cert
+
+# Uploads
+uploads/
+media/
+storage/
+
+# Environment specific
+.env.*
+!.env.example
+
+# Docker
+docker-compose.override.yml
+*.dockerignore
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Sentry
+.sentry/
+
+# Redis
+dump.rdb
+
+# Prisma
+prisma/*.db
+prisma/*.sqlite
+
+# Export files
+temp/exports/*
+!temp/exports/.gitkeep
+
+# PM2
+.pm2/
+
+# Webpack
+webpack-stats.json
+
+# Vite
+.vite/
+
+# Coverage
+coverage/
+
+# Misc
+*.log
+*.pid
+*.seed
+*.pid.lock
